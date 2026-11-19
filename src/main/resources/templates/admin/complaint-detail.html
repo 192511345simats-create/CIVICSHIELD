@@ -288,8 +288,9 @@
                 <div th:each="update : ${timeline}" class="timeline-item">
                   <div class="timeline-dot"></div>
                   <div class="timeline-content">
-                    <div class="timeline-title" th:text="${update.message}"></div>
-                    <div class="timeline-time" th:text="${#temporals.format(update.createdAt,'dd MMM yyyy, HH:mm')}"></div>
+                    <div class="timeline-title"
+                         th:text="${update.notes != null and !#strings.isEmpty(update.notes) ? update.notes : 'Status changed to ' + update.newStatus.displayName}"></div>
+                    <div class="timeline-time" th:text="${#temporals.format(update.updatedAt,'dd MMM yyyy, HH:mm')}"></div>
                     <div th:if="${update.updatedBy != null}" class="timeline-time"
                          th:text="'By ' + ${update.updatedBy.fullName}"></div>
                   </div>
