@@ -1,0 +1,41 @@
+# Compiled output
+target/
+
+# Maven wrapper (optional — keep if you want)
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.classpath
+*.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Uploaded files (don't commit user uploads)
+uploads/
+
+# Sensitive config — NEVER commit real passwords
+# application.properties is committed but with placeholder passwords
+# DO NOT put real credentials in application.properties
+
+# Temp files
+*.tmp
+*.bak
+
+# Dataset raw data (can be large)
+datasets/raw/
+datasets/processed/
+datasets/import/
+
+# Scratch / temp scripts
+reset_mysql.sql
+reset_mysql_password.bat

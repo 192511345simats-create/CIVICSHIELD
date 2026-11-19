@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Image Verification — CIVICSHIELD Admin</title>
+<link rel="stylesheet" th:href="@{/css/civicshield.css}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="dashboard-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo"><img th:src="@{/images/civicshield-logo.png}" alt="CIVICSHIELD"></div>
+    <nav class="sidebar-nav">
+      <a th:href="@{/admin/overview}"><span class="nav-icon"><i class="fa fa-chart-line"></i></span><span>Overview</span></a>
+      <a th:href="@{/admin/complaints}"><span class="nav-icon"><i class="fa fa-clipboard-list"></i></span><span>All Complaints</span></a>
+      <a th:href="@{/admin/image-verification}" class="active"><span class="nav-icon"><i class="fa fa-image"></i></span><span>Image Verification</span></a>
+      <a th:href="@{/admin/risk-assessment}"><span class="nav-icon"><i class="fa fa-triangle-exclamation"></i></span><span>Risk Assessment</span></a>
+      <a th:href="@{/admin/departments}"><span class="nav-icon"><i class="fa fa-building"></i></span><span>Departments</span></a>
+      <a th:href="@{/admin/assignments}"><span class="nav-icon"><i class="fa fa-hard-hat"></i></span><span>Worker Assignments</span></a>
+      <a th:href="@{/admin/escalations}"><span class="nav-icon"><i class="fa fa-fire"></i></span><span>Escalations</span></a>
+      <a th:href="@{/admin/analytics}"><span class="nav-icon"><i class="fa fa-bar-chart"></i></span><span>Analytics</span></a>
+      <a th:href="@{/admin/users}"><span class="nav-icon"><i class="fa fa-users"></i></span><span>User Management</span></a>
+      <a th:href="@{/admin/alerts}"><span class="nav-icon"><i class="fa fa-bell"></i></span><span>Safety Alerts</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <form th:action="@{/logout}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15);">
+          <i class="fa fa-sign-out-alt"></i><span> Logout</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="dashboard-main">
+    <div class="dashboard-topbar">
+      <span class="topbar-title">Image Verification</span>
+      <div class="topbar-right">
+        <span style="font-size:13px;color:var(--grey-dark);">System checks photos for duplicates and suspicious content. You make the final decision.</span>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <div th:if="${success}" class="alert alert-success"><i class="fa fa-check-circle"></i><span th:text="${success}"></span></div>
+
+      <!-- Review Modal (inline expand per row) -->
+      <div class="table-wrapper">
+        <div th:if="${#lists.isEmpty(verifications)}" class="table-empty">
+          <i class="fa fa-image" style="font-size:32px;margin-bottom:8px;display:block;"></i>
+          No image verifications yet. Images are checked automatically on report submission.
+        </div>
+        <table th:unless="${#lists.isEmpty(verifications)}">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Complaint</th>
+              <th>SHA-256 (preview)</th>
+              <th>Exact Dup?</th>
+              <th>Similar?</th>
+              <th>GPS?</th>
+              <th>Timestamp?</th>
+              <th>Camera?</th>
+              <th>Result</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="v : ${verifications}">
+              <td style="font-size:12px;" th:text="${v.id}"></td>
+              <td>
+                <a th:href="@{/admin/complaints/{id}(id=${v.complaint.id})}"
+                   style="font-family:monospace;font-size:12px;color:var(--red);"
+                   th:text="${v.complaint.complaintId}"></a>
+              </td>
+              <td style="font-family:monospace;font-size:11px;" th:text="${v.sha256Hash != null ? #strings.substring(v.sha256Hash,0,16)+'...' : '—'}"></td>
+              <td style="text-align:center;">
+                <i th:class="${v.exactDuplicate ? 'fa fa-xmark' : 'fa fa-check'}"
+                   th:style="${v.exactDuplicate ? 'color:#C8202F;' : 'color:#27ae60;'}"></i>
+              </td>
+              <td style="text-align:center;">
+                <i th:class="${v.visuallySimilar ? 'fa fa-xmark' : 'fa fa-check'}"
+                   th:style="${v.visuallySimilar ? 'color:#e67e22;' : 'color:#27ae60;'}"></i>
+              </td>
+              <td style="text-align:center;">
+                <i th:class="${v.hasGpsData ? 'fa fa-check' : 'fa fa-minus'}"
+                   th:style="${v.hasGpsData ? 'color:#27ae60;' : 'color:var(--grey-dark);'}"></i>
+              </td>
+              <td style="text-align:center;">
+                <i th:class="${v.hasTimestamp ? 'fa fa-check' : 'fa fa-minus'}"
+                   th:style="${v.hasTimestamp ? 'color:#27ae60;' : 'color:var(--grey-dark);'}"></i>
+              </td>
+              <td style="text-align:center;">
+                <i th:class="${v.hasCameraInfo ? 'fa fa-check' : 'fa fa-minus'}"
+                   th:style="${v.hasCameraInfo ? 'color:#27ae60;' : 'color:var(--grey-dark);'}"></i>
+              </td>
+              <td>
+                <span class="badge"
+                      th:classappend="${v.result.name() == 'CLEAN' or v.result.name() == 'ACCEPTED_BY_ADMIN'} ? 'badge-resolved' :
+                                     (${v.result.name() == 'SUSPICIOUS' or v.result.name() == 'FLAGGED_BY_ADMIN'} ? 'badge-critical' :
+                                     (${v.result.name() == 'POSSIBLE_DUPLICATE'} ? 'badge-high' : 'badge-submitted'))"
+                      th:text="${v.result.name()}"></span>
+              </td>
+              <td>
+                <!-- Inline review form via details/summary toggle -->
+                <details>
+                  <summary class="btn btn-ghost btn-sm" style="cursor:pointer;list-style:none;">Review</summary>
+                  <div style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center;"
+                       onclick="this.closest('details').removeAttribute('open')">
+                    <div style="background:#fff;border-radius:12px;padding:24px;width:380px;max-width:95vw;z-index:1000;"
+                         onclick="event.stopPropagation()">
+                      <div style="font-weight:700;font-size:15px;margin-bottom:16px;">Review Image</div>
+                      <form th:action="@{/admin/image-verification/{id}/review(id=${v.id})}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="form-group">
+                          <label class="form-label">Decision</label>
+                          <select name="result" class="form-control" required>
+                            <option value="CLEAN">Clean — Genuine photo</option>
+                            <option value="POSSIBLE_DUPLICATE">Possible Duplicate</option>
+                            <option value="SUSPICIOUS">Suspicious</option>
+                            <option value="FLAGGED_BY_ADMIN">Flag for removal</option>
+                            <option value="ACCEPTED_BY_ADMIN">Accept despite flags</option>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Notes (optional)</label>
+                          <textarea name="notes" class="form-control" rows="3" placeholder="Add notes..."></textarea>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                          <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save</button>
+                          <button type="button" class="btn btn-ghost btn-sm"
+                                  onclick="this.closest('details').removeAttribute('open')">Cancel</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </details>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

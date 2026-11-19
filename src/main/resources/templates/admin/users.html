@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>User Management — CIVICSHIELD Admin</title>
+<link rel="stylesheet" th:href="@{/css/civicshield.css}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="dashboard-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo"><img th:src="@{/images/civicshield-logo.png}" alt="CIVICSHIELD"></div>
+    <nav class="sidebar-nav">
+      <a th:href="@{/admin/overview}"><span class="nav-icon"><i class="fa fa-chart-line"></i></span><span>Overview</span></a>
+      <a th:href="@{/admin/complaints}"><span class="nav-icon"><i class="fa fa-clipboard-list"></i></span><span>All Complaints</span></a>
+      <a th:href="@{/admin/image-verification}"><span class="nav-icon"><i class="fa fa-image"></i></span><span>Image Verification</span></a>
+      <a th:href="@{/admin/risk-assessment}"><span class="nav-icon"><i class="fa fa-triangle-exclamation"></i></span><span>Risk Assessment</span></a>
+      <a th:href="@{/admin/departments}"><span class="nav-icon"><i class="fa fa-building"></i></span><span>Departments</span></a>
+      <a th:href="@{/admin/assignments}"><span class="nav-icon"><i class="fa fa-hard-hat"></i></span><span>Worker Assignments</span></a>
+      <a th:href="@{/admin/escalations}"><span class="nav-icon"><i class="fa fa-fire"></i></span><span>Escalations</span></a>
+      <a th:href="@{/admin/analytics}"><span class="nav-icon"><i class="fa fa-bar-chart"></i></span><span>Analytics</span></a>
+      <a th:href="@{/admin/users}" class="active"><span class="nav-icon"><i class="fa fa-users"></i></span><span>User Management</span></a>
+      <a th:href="@{/admin/alerts}"><span class="nav-icon"><i class="fa fa-bell"></i></span><span>Safety Alerts</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <form th:action="@{/logout}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15);">
+          <i class="fa fa-sign-out-alt"></i><span> Logout</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="dashboard-main">
+    <div class="dashboard-topbar">
+      <span class="topbar-title">User Management</span>
+      <div class="topbar-right">
+        <span style="font-size:14px;color:var(--grey-dark);" th:text="${admin.fullName}">Admin</span>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <div th:if="${success}" class="alert alert-success"><i class="fa fa-check-circle"></i><span th:text="${success}"></span></div>
+
+      <!-- Search bar -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-body" style="padding:12px 16px;">
+          <form method="get" th:action="@{/admin/users}" style="display:flex;gap:10px;align-items:center;">
+            <i class="fa fa-search" style="color:var(--grey-dark);"></i>
+            <input type="text" name="q" class="form-control" placeholder="Search by name or email..."
+                   th:value="${query}" style="max-width:320px;">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            <a th:href="@{/admin/users}" class="btn btn-ghost btn-sm">Clear</a>
+            <span style="margin-left:auto;font-size:13px;color:var(--grey-dark);"
+                  th:text="${users.size()} + ' user(s) found'"></span>
+          </form>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <div th:if="${#lists.isEmpty(users)}" class="table-empty">
+          <i class="fa fa-users" style="font-size:32px;margin-bottom:8px;display:block;"></i>
+          <span th:if="${query != null and !query.isBlank()}">No users match "<span th:text="${query}"></span>".</span>
+          <span th:unless="${query != null and !query.isBlank()}">No citizen accounts yet.</span>
+        </div>
+        <table th:unless="${#lists.isEmpty(users)}">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Mobile</th>
+              <th>Registered</th>
+              <th>Login Method</th>
+              <th>Account Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="u : ${users}">
+              <td style="font-weight:600;font-size:13px;" th:text="${u.fullName}"></td>
+              <td style="font-size:13px;" th:text="${u.email}"></td>
+              <td style="font-size:13px;" th:text="${u.mobile != null ? u.mobile : '—'}"></td>
+              <td style="font-size:13px;" th:text="${#temporals.format(u.createdAt,'dd MMM yyyy')}"></td>
+              <td>
+                <span style="font-size:12px;font-weight:600;"
+                      th:text="${u.provider != null ? u.provider.name() : 'LOCAL'}"
+                      th:style="${u.provider != null and u.provider.name() == 'GOOGLE'} ? 'color:#4285F4;' : 'color:var(--charcoal);'"></span>
+              </td>
+              <td>
+                <span th:if="${u.enabled}" class="badge badge-resolved">Active</span>
+                <span th:unless="${u.enabled}" class="badge badge-rejected">Disabled</span>
+              </td>
+              <td>
+                <form th:action="@{/admin/users/{id}/toggle(id=${u.id})}" method="post" style="display:inline;">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                  <input type="hidden" name="enabled" th:value="${!u.enabled}"/>
+                  <button type="submit" class="btn btn-ghost btn-sm"
+                          th:text="${u.enabled ? 'Disable' : 'Enable'}"
+                          th:style="${u.enabled ? 'color:#C8202F;border-color:#C8202F;' : 'color:#27ae60;border-color:#27ae60;'}">
+                  </button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

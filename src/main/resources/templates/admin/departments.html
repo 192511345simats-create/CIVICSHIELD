@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Departments — CIVICSHIELD Admin</title>
+<link rel="stylesheet" th:href="@{/css/civicshield.css}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="dashboard-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo"><img th:src="@{/images/civicshield-logo.png}" alt="CIVICSHIELD"></div>
+    <nav class="sidebar-nav">
+      <a th:href="@{/admin/overview}"><span class="nav-icon"><i class="fa fa-chart-line"></i></span><span>Overview</span></a>
+      <a th:href="@{/admin/complaints}"><span class="nav-icon"><i class="fa fa-clipboard-list"></i></span><span>All Complaints</span></a>
+      <a th:href="@{/admin/image-verification}"><span class="nav-icon"><i class="fa fa-image"></i></span><span>Image Verification</span></a>
+      <a th:href="@{/admin/risk-assessment}"><span class="nav-icon"><i class="fa fa-triangle-exclamation"></i></span><span>Risk Assessment</span></a>
+      <a th:href="@{/admin/departments}" class="active"><span class="nav-icon"><i class="fa fa-building"></i></span><span>Departments</span></a>
+      <a th:href="@{/admin/assignments}"><span class="nav-icon"><i class="fa fa-hard-hat"></i></span><span>Worker Assignments</span></a>
+      <a th:href="@{/admin/escalations}"><span class="nav-icon"><i class="fa fa-fire"></i></span><span>Escalations</span></a>
+      <a th:href="@{/admin/analytics}"><span class="nav-icon"><i class="fa fa-bar-chart"></i></span><span>Analytics</span></a>
+      <a th:href="@{/admin/users}"><span class="nav-icon"><i class="fa fa-users"></i></span><span>User Management</span></a>
+      <a th:href="@{/admin/alerts}"><span class="nav-icon"><i class="fa fa-bell"></i></span><span>Safety Alerts</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <form th:action="@{/logout}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15);">
+          <i class="fa fa-sign-out-alt"></i><span> Logout</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="dashboard-main">
+    <div class="dashboard-topbar">
+      <span class="topbar-title">Departments</span>
+      <div class="topbar-right">
+        <span style="font-size:14px;color:var(--grey-dark);" th:text="${admin.fullName}">Admin</span>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <div th:if="${success}" class="alert alert-success"><i class="fa fa-check-circle"></i><span th:text="${success}"></span></div>
+      <div th:if="${error}" class="alert alert-danger"><i class="fa fa-exclamation-circle"></i><span th:text="${error}"></span></div>
+
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;">
+
+        <!-- Departments list -->
+        <div>
+          <div class="table-wrapper" style="margin-bottom:0;">
+            <div th:if="${#lists.isEmpty(departments)}" class="table-empty">
+              <i class="fa fa-building" style="font-size:32px;margin-bottom:8px;display:block;"></i>
+              No departments yet. Add one using the form.
+            </div>
+            <table th:unless="${#lists.isEmpty(departments)}">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Department Head</th>
+                  <th>Contact Email</th>
+                  <th>Phone</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="d : ${departments}">
+                  <td>
+                    <div style="font-weight:600;font-size:14px;" th:text="${d.name}"></div>
+                    <div th:if="${d.description != null}" style="font-size:12px;color:var(--grey-dark);" th:text="${d.description}"></div>
+                  </td>
+                  <td style="font-size:13px;" th:text="${d.headName != null ? d.headName : '—'}"></td>
+                  <td style="font-size:13px;" th:text="${d.contactEmail != null ? d.contactEmail : '—'}"></td>
+                  <td style="font-size:13px;" th:text="${d.contactPhone != null ? d.contactPhone : '—'}"></td>
+                  <td>
+                    <span th:if="${d.active}" class="badge badge-resolved">Active</span>
+                    <span th:unless="${d.active}" class="badge badge-rejected">Inactive</span>
+                  </td>
+                  <td>
+                    <form th:action="@{/admin/departments/{id}/toggle(id=${d.id})}" method="post" style="display:inline;">
+                      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                      <input type="hidden" name="active" th:value="${!d.active}"/>
+                      <button type="submit" class="btn btn-ghost btn-sm"
+                              th:text="${d.active ? 'Deactivate' : 'Activate'}"></button>
+                    </form>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Add Department form -->
+        <div class="card" style="height:fit-content;">
+          <div class="card-body">
+            <div style="font-size:14px;font-weight:700;margin-bottom:16px;color:var(--charcoal);">Add Department</div>
+            <form th:action="@{/admin/departments/create}" method="post" style="display:flex;flex-direction:column;gap:12px;">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Department Name *</label>
+                <input type="text" name="name" class="form-control" placeholder="e.g. Roads Department" required>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Description</label>
+                <input type="text" name="description" class="form-control" placeholder="Brief description">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Department Head</label>
+                <input type="text" name="headName" class="form-control" placeholder="Head officer name">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Contact Email</label>
+                <input type="email" name="contactEmail" class="form-control" placeholder="email@gov.in">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" name="contactPhone" class="form-control" placeholder="Contact number">
+              </div>
+              <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Department</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Worker Assignments — CIVICSHIELD Admin</title>
+<link rel="stylesheet" th:href="@{/css/civicshield.css}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="dashboard-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo"><img th:src="@{/images/civicshield-logo.png}" alt="CIVICSHIELD"></div>
+    <nav class="sidebar-nav">
+      <a th:href="@{/admin/overview}"><span class="nav-icon"><i class="fa fa-chart-line"></i></span><span>Overview</span></a>
+      <a th:href="@{/admin/complaints}"><span class="nav-icon"><i class="fa fa-clipboard-list"></i></span><span>All Complaints</span></a>
+      <a th:href="@{/admin/image-verification}"><span class="nav-icon"><i class="fa fa-image"></i></span><span>Image Verification</span></a>
+      <a th:href="@{/admin/risk-assessment}"><span class="nav-icon"><i class="fa fa-triangle-exclamation"></i></span><span>Risk Assessment</span></a>
+      <a th:href="@{/admin/departments}"><span class="nav-icon"><i class="fa fa-building"></i></span><span>Departments</span></a>
+      <a th:href="@{/admin/assignments}" class="active"><span class="nav-icon"><i class="fa fa-hard-hat"></i></span><span>Worker Assignments</span></a>
+      <a th:href="@{/admin/escalations}"><span class="nav-icon"><i class="fa fa-fire"></i></span><span>Escalations</span></a>
+      <a th:href="@{/admin/analytics}"><span class="nav-icon"><i class="fa fa-bar-chart"></i></span><span>Analytics</span></a>
+      <a th:href="@{/admin/users}"><span class="nav-icon"><i class="fa fa-users"></i></span><span>User Management</span></a>
+      <a th:href="@{/admin/alerts}"><span class="nav-icon"><i class="fa fa-bell"></i></span><span>Safety Alerts</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <form th:action="@{/logout}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15);">
+          <i class="fa fa-sign-out-alt"></i><span> Logout</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="dashboard-main">
+    <div class="dashboard-topbar">
+      <span class="topbar-title">Worker Assignments</span>
+      <div class="topbar-right">
+        <a th:href="@{/admin/complaints}" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> New Assignment</a>
+        <span style="font-size:14px;color:var(--grey-dark);" th:text="${admin.fullName}">Admin</span>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <div th:if="${success}" class="alert alert-success"><i class="fa fa-check-circle"></i><span th:text="${success}"></span></div>
+
+      <!-- Note -->
+      <div class="card" style="margin-bottom:20px;background:#f8f9ff;border:1px solid #d0d8ff;">
+        <div class="card-body" style="padding:12px 16px;font-size:13px;color:#3a3f7a;">
+          <i class="fa fa-info-circle"></i>
+          Assign workers to complaints from the <a th:href="@{/admin/complaints}" style="color:var(--red);">complaint detail page</a>.
+          This page shows all existing assignments.
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <div th:if="${#lists.isEmpty(assignments)}" class="table-empty">
+          <i class="fa fa-hard-hat" style="font-size:32px;margin-bottom:8px;display:block;"></i>
+          No assignments yet. Go to a complaint and assign it to a department.
+        </div>
+        <table th:unless="${#lists.isEmpty(assignments)}">
+          <thead>
+            <tr>
+              <th>Complaint</th>
+              <th>Issue Type</th>
+              <th>Department</th>
+              <th>Worker</th>
+              <th>Contact</th>
+              <th>Deadline</th>
+              <th>Assigned By</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="a : ${assignments}">
+              <td style="font-family:monospace;font-size:12px;">
+                <a th:href="@{/admin/complaints/{id}(id=${a.complaint.id})}"
+                   style="color:var(--red);"
+                   th:text="${a.complaint.complaintId}"></a>
+              </td>
+              <td style="font-size:13px;" th:text="${a.complaint.category.displayName}"></td>
+              <td style="font-size:13px;" th:text="${a.department.name}"></td>
+              <td style="font-size:13px;" th:text="${a.workerName != null ? a.workerName : '—'}"></td>
+              <td style="font-size:13px;" th:text="${a.workerContact != null ? a.workerContact : '—'}"></td>
+              <td style="font-size:13px;">
+                <span th:if="${a.deadline != null}" th:text="${#temporals.format(a.deadline,'dd MMM yyyy')}"></span>
+                <span th:unless="${a.deadline != null}" style="color:var(--grey-dark);">—</span>
+              </td>
+              <td style="font-size:13px;" th:text="${a.assignedBy != null ? a.assignedBy.fullName : '—'}"></td>
+              <td>
+                <span class="badge"
+                      th:classappend="${a.complaint.status.name() == 'RESOLVED'} ? 'badge-resolved' :
+                                     (${a.complaint.status.name() == 'IN_PROGRESS'} ? 'badge-in-progress' : 'badge-assigned')"
+                      th:text="${a.complaint.status.displayName}"></span>
+              </td>
+              <td>
+                <a th:href="@{/admin/complaints/{id}(id=${a.complaint.id})}" class="btn btn-ghost btn-sm">View</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

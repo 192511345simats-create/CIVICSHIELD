@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Safety Alerts — CIVICSHIELD Admin</title>
+<link rel="stylesheet" th:href="@{/css/civicshield.css}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="dashboard-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo"><img th:src="@{/images/civicshield-logo.png}" alt="CIVICSHIELD"></div>
+    <nav class="sidebar-nav">
+      <a th:href="@{/admin/overview}"><span class="nav-icon"><i class="fa fa-chart-line"></i></span><span>Overview</span></a>
+      <a th:href="@{/admin/complaints}"><span class="nav-icon"><i class="fa fa-clipboard-list"></i></span><span>All Complaints</span></a>
+      <a th:href="@{/admin/image-verification}"><span class="nav-icon"><i class="fa fa-image"></i></span><span>Image Verification</span></a>
+      <a th:href="@{/admin/risk-assessment}"><span class="nav-icon"><i class="fa fa-triangle-exclamation"></i></span><span>Risk Assessment</span></a>
+      <a th:href="@{/admin/departments}"><span class="nav-icon"><i class="fa fa-building"></i></span><span>Departments</span></a>
+      <a th:href="@{/admin/assignments}"><span class="nav-icon"><i class="fa fa-hard-hat"></i></span><span>Worker Assignments</span></a>
+      <a th:href="@{/admin/escalations}"><span class="nav-icon"><i class="fa fa-fire"></i></span><span>Escalations</span></a>
+      <a th:href="@{/admin/analytics}"><span class="nav-icon"><i class="fa fa-bar-chart"></i></span><span>Analytics</span></a>
+      <a th:href="@{/admin/users}"><span class="nav-icon"><i class="fa fa-users"></i></span><span>User Management</span></a>
+      <a th:href="@{/admin/alerts}" class="active"><span class="nav-icon"><i class="fa fa-bell"></i></span><span>Safety Alerts</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <form th:action="@{/logout}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15);">
+          <i class="fa fa-sign-out-alt"></i><span> Logout</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="dashboard-main">
+    <div class="dashboard-topbar">
+      <span class="topbar-title">Safety Alerts</span>
+      <div class="topbar-right">
+        <span style="font-size:14px;color:var(--grey-dark);" th:text="${admin.fullName}">Admin</span>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <div th:if="${success}" class="alert alert-success"><i class="fa fa-check-circle"></i><span th:text="${success}"></span></div>
+      <div th:if="${error}" class="alert alert-danger"><i class="fa fa-exclamation-circle"></i><span th:text="${error}"></span></div>
+
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;">
+
+        <!-- Alerts list -->
+        <div>
+          <div class="table-wrapper" style="margin-bottom:0;">
+            <div class="table-header">
+              <h2>Active Alerts</h2>
+              <span style="font-size:12px;color:var(--grey-dark);">Visible to all citizens</span>
+            </div>
+            <div th:if="${#lists.isEmpty(alerts)}" class="table-empty">
+              <i class="fa fa-bell" style="font-size:32px;margin-bottom:8px;display:block;color:#27ae60;"></i>
+              No active safety alerts.
+            </div>
+            <table th:unless="${#lists.isEmpty(alerts)}">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Location</th>
+                  <th>Priority</th>
+                  <th>Published</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="a : ${alerts}"
+                    th:style="${a.status.name() == 'ACTIVE'} ? 'background:#fffdf8;' : ''">
+                  <td>
+                    <div style="font-weight:600;font-size:13px;" th:text="${a.title}"></div>
+                    <div style="font-size:12px;color:var(--grey-dark);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                         th:text="${a.description}"></div>
+                    <div th:if="${a.safetyInstructions != null}"
+                         style="font-size:11px;color:#e67e22;margin-top:2px;">
+                      <i class="fa fa-info-circle"></i>
+                      <span th:text="${a.safetyInstructions}"></span>
+                    </div>
+                  </td>
+                  <td style="font-size:13px;" th:text="${a.location != null ? a.location : '—'}"></td>
+                  <td>
+                    <span th:if="${a.priority != null}" class="badge"
+                          th:classappend="'badge-' + ${#strings.toLowerCase(a.priority.name())}"
+                          th:text="${a.priority.displayName}"></span>
+                    <span th:unless="${a.priority != null}" style="color:var(--grey-dark);font-size:12px;">—</span>
+                  </td>
+                  <td style="font-size:13px;" th:text="${#temporals.format(a.createdAt,'dd MMM yyyy')}"></td>
+                  <td>
+                    <span class="badge"
+                          th:classappend="${a.status.name() == 'ACTIVE'} ? 'badge-high' : 'badge-resolved'"
+                          th:text="${a.status.name()}"></span>
+                  </td>
+                  <td>
+                    <form th:if="${a.status.name() == 'ACTIVE'}"
+                          th:action="@{/admin/alerts/{id}/resolve(id=${a.id})}" method="post" style="display:inline;">
+                      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                      <button type="submit" class="btn btn-ghost btn-sm"
+                              style="color:#27ae60;border-color:#27ae60;"
+                              onclick="return confirm('Mark this alert as resolved?')">
+                        <i class="fa fa-check"></i> Resolve
+                      </button>
+                    </form>
+                    <span th:unless="${a.status.name() == 'ACTIVE'}"
+                          style="font-size:12px;color:var(--grey-dark);">Resolved</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Publish Alert form -->
+        <div class="card" style="height:fit-content;">
+          <div class="card-body">
+            <div style="font-size:14px;font-weight:700;margin-bottom:16px;color:var(--charcoal);">
+              <i class="fa fa-bell" style="color:var(--red);"></i> Publish New Alert
+            </div>
+            <form th:action="@{/admin/alerts/create}" method="post" style="display:flex;flex-direction:column;gap:12px;">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Alert Title *</label>
+                <input type="text" name="title" class="form-control"
+                       placeholder="e.g. Road Closed — Flooded" required maxlength="200">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Description *</label>
+                <textarea name="description" class="form-control" rows="3"
+                          placeholder="Briefly describe the alert..." required maxlength="1000"></textarea>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Location</label>
+                <input type="text" name="location" class="form-control"
+                       placeholder="Area or address affected">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Priority</label>
+                <select name="priority" class="form-control">
+                  <option value="">Select priority...</option>
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                  <option value="CRITICAL">Critical</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Safety Instructions</label>
+                <textarea name="safetyInstructions" class="form-control" rows="2"
+                          placeholder="What should citizens do? (optional)"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fa fa-bullhorn"></i> Publish Alert
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

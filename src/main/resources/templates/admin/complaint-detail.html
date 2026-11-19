@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Complaint Detail — CIVICSHIELD Admin</title>
+<link rel="stylesheet" th:href="@{/css/civicshield.css}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+<div class="dashboard-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo"><img th:src="@{/images/civicshield-logo.png}" alt="CIVICSHIELD"></div>
+    <nav class="sidebar-nav">
+      <a th:href="@{/admin/overview}"><span class="nav-icon"><i class="fa fa-chart-line"></i></span><span>Overview</span></a>
+      <a th:href="@{/admin/complaints}" class="active"><span class="nav-icon"><i class="fa fa-clipboard-list"></i></span><span>All Complaints</span></a>
+      <a th:href="@{/admin/image-verification}"><span class="nav-icon"><i class="fa fa-image"></i></span><span>Image Verification</span></a>
+      <a th:href="@{/admin/risk-assessment}"><span class="nav-icon"><i class="fa fa-triangle-exclamation"></i></span><span>Risk Assessment</span></a>
+      <a th:href="@{/admin/departments}"><span class="nav-icon"><i class="fa fa-building"></i></span><span>Departments</span></a>
+      <a th:href="@{/admin/assignments}"><span class="nav-icon"><i class="fa fa-hard-hat"></i></span><span>Worker Assignments</span></a>
+      <a th:href="@{/admin/escalations}"><span class="nav-icon"><i class="fa fa-fire"></i></span><span>Escalations</span></a>
+      <a th:href="@{/admin/analytics}"><span class="nav-icon"><i class="fa fa-bar-chart"></i></span><span>Analytics</span></a>
+      <a th:href="@{/admin/users}"><span class="nav-icon"><i class="fa fa-users"></i></span><span>User Management</span></a>
+      <a th:href="@{/admin/alerts}"><span class="nav-icon"><i class="fa fa-bell"></i></span><span>Safety Alerts</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <form th:action="@{/logout}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15);">
+          <i class="fa fa-sign-out-alt"></i><span> Logout</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="dashboard-main">
+    <div class="dashboard-topbar">
+      <span class="topbar-title">
+        <a th:href="@{/admin/complaints}" style="color:var(--grey-dark);text-decoration:none;font-size:14px;">All Complaints</a>
+        <i class="fa fa-chevron-right" style="font-size:11px;margin:0 6px;color:var(--grey-dark);"></i>
+        <span th:text="${complaint.complaintId}"></span>
+      </span>
+      <div class="topbar-right">
+        <span style="font-size:14px;color:var(--grey-dark);" th:text="${admin.fullName}">Admin</span>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <div th:if="${success}" class="alert alert-success"><i class="fa fa-check-circle"></i><span th:text="${success}"></span></div>
+      <div th:if="${error}" class="alert alert-danger"><i class="fa fa-exclamation-circle"></i><span th:text="${error}"></span></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+        <!-- LEFT COLUMN -->
+        <div>
+
+          <!-- Complaint Details -->
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-body">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+                <div>
+                  <div style="font-size:11px;color:var(--grey-dark);text-transform:uppercase;letter-spacing:.5px;">Complaint ID</div>
+                  <div style="font-size:18px;font-weight:700;font-family:monospace;" th:text="${complaint.complaintId}"></div>
+                </div>
+                <div style="text-align:right;">
+                  <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(complaint.status.name())}"
+                        th:text="${complaint.status.displayName}"></span>
+                  <div style="margin-top:6px;">
+                    <span th:if="${complaint.priority != null}" class="badge"
+                          th:classappend="'badge-' + ${#strings.toLowerCase(complaint.priority.name())}"
+                          th:text="${complaint.priority.displayName}"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+                <div>
+                  <div style="color:var(--grey-dark);margin-bottom:2px;">Citizen</div>
+                  <div style="font-weight:600;" th:text="${complaint.user.fullName}"></div>
+                  <div style="color:var(--grey-dark);font-size:12px;" th:text="${complaint.user.email}"></div>
+                </div>
+                <div>
+                  <div style="color:var(--grey-dark);margin-bottom:2px;">Issue Type</div>
+                  <div style="font-weight:600;" th:text="${complaint.category.displayName}"></div>
+                </div>
+                <div>
+                  <div style="color:var(--grey-dark);margin-bottom:2px;">Location</div>
+                  <div th:text="${complaint.locationAddress != null ? complaint.locationAddress : '—'}"></div>
+                </div>
+                <div>
+                  <div style="color:var(--grey-dark);margin-bottom:2px;">Submitted</div>
+                  <div th:text="${#temporals.format(complaint.createdAt,'dd MMM yyyy, HH:mm')}"></div>
+                </div>
+                <div>
+                  <div style="color:var(--grey-dark);margin-bottom:2px;">Risk Score</div>
+                  <div th:text="${complaint.riskScore != null ? complaint.riskScore + ' / 100' : '—'}"></div>
+                </div>
+                <div>
+                  <div style="color:var(--grey-dark);margin-bottom:2px;">Possible Duplicate</div>
+                  <div th:text="${complaint.possibleDuplicate ? 'Yes' : 'No'}"></div>
+                </div>
+              </div>
+
+              <div style="margin-top:12px;font-size:13px;">
+                <div style="color:var(--grey-dark);margin-bottom:4px;">Description</div>
+                <div style="background:var(--bg);padding:10px;border-radius:6px;border:1px solid var(--border);"
+                     th:text="${complaint.description}"></div>
+              </div>
+
+              <!-- Map -->
+              <div th:if="${complaint.latitude != null}" style="margin-top:12px;">
+                <div style="color:var(--grey-dark);font-size:13px;margin-bottom:6px;">Reported Location</div>
+                <div id="detailMap" style="height:160px;border-radius:8px;border:1px solid var(--border);"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Photo -->
+          <div th:if="${complaint.imagePath != null}" class="card" style="margin-bottom:20px;">
+            <div class="card-body">
+              <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--charcoal);">Uploaded Photo</div>
+              <img th:src="@{'/uploads/' + ${complaint.imagePath}}"
+                   alt="Complaint Photo"
+                   style="width:100%;border-radius:8px;border:1px solid var(--border);max-height:280px;object-fit:cover;">
+              <div th:if="${imageVerification != null}" style="margin-top:8px;font-size:12px;color:var(--grey-dark);">
+                SHA-256: <span style="font-family:monospace;" th:text="${#strings.substring(imageVerification.sha256Hash,0,16) + '...'}"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Change Status -->
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-body">
+              <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--charcoal);">Change Status</div>
+              <form th:action="@{/admin/complaints/{id}/status(id=${complaint.id})}" method="post" style="display:flex;flex-direction:column;gap:10px;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" style="font-size:12px;">New Status</label>
+                  <select name="status" class="form-control" required>
+                    <option value="" disabled selected>Select status...</option>
+                    <option th:each="s : ${T(com.civicshield.entity.Complaint.Status).values()}"
+                            th:value="${s.name()}" th:text="${s.displayName}"
+                            th:selected="${complaint.status == s}"></option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" style="font-size:12px;">Notes (optional)</label>
+                  <textarea name="notes" class="form-control" rows="2" placeholder="Add a note..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-refresh"></i> Update Status</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Assign to Department -->
+          <div class="card">
+            <div class="card-body">
+              <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--charcoal);">Assign to Department</div>
+              <div th:if="${assignment != null}" style="margin-bottom:12px;padding:10px;background:#f0fff4;border:1px solid #a8e6cf;border-radius:6px;font-size:13px;">
+                <div style="color:#27ae60;font-weight:600;margin-bottom:4px;"><i class="fa fa-check-circle"></i> Currently Assigned</div>
+                <div>Department: <strong th:text="${assignment.department.name}"></strong></div>
+                <div>Worker: <span th:text="${assignment.workerName}"></span></div>
+                <div th:if="${assignment.deadline != null}">Deadline: <span th:text="${#temporals.format(assignment.deadline,'dd MMM yyyy')}"></span></div>
+              </div>
+              <form th:action="@{/admin/complaints/{id}/assign(id=${complaint.id})}" method="post" style="display:flex;flex-direction:column;gap:10px;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" style="font-size:12px;">Department</label>
+                  <select name="departmentId" class="form-control" required>
+                    <option value="" disabled selected>Select department...</option>
+                    <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"></option>
+                  </select>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" style="font-size:12px;">Worker Name</label>
+                    <input type="text" name="workerName" class="form-control" placeholder="Name">
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" style="font-size:12px;">Worker Contact</label>
+                    <input type="text" name="workerContact" class="form-control" placeholder="Phone">
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" style="font-size:12px;">Deadline</label>
+                  <input type="datetime-local" name="deadline" class="form-control">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" style="font-size:12px;">Instructions (optional)</label>
+                  <textarea name="instructions" class="form-control" rows="2" placeholder="Special instructions..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-hard-hat"></i> Assign</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div>
+
+          <!-- Risk Assessment -->
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-body">
+              <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--charcoal);">Risk Assessment</div>
+              <div th:if="${riskAssessment == null}" style="font-size:13px;color:var(--grey-dark);">
+                Risk assessment not yet calculated.
+              </div>
+              <div th:unless="${riskAssessment == null}">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+                  <div style="text-align:center;min-width:70px;">
+                    <div style="font-size:28px;font-weight:700;" th:text="${riskAssessment.totalScore}">0</div>
+                    <div style="font-size:11px;color:var(--grey-dark);">Risk Score</div>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="background:var(--bg);border-radius:4px;height:10px;overflow:hidden;">
+                      <div th:style="'width:' + ${riskAssessment.totalScore} + '%;background:' +
+                                     (${riskAssessment.totalScore >= 75} ? '#C8202F' :
+                                     (${riskAssessment.totalScore >= 50} ? '#e67e22' : '#27ae60')) +
+                                     ';height:100%;border-radius:4px;'"></div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+                  <div>Calculated Priority: <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(riskAssessment.calculatedPriority.name())}"
+                                                   th:text="${riskAssessment.calculatedPriority.displayName}"></span></div>
+                  <div th:if="${riskAssessment.adminOverridePriority != null}">
+                    Admin Override: <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(riskAssessment.adminOverridePriority.name())}"
+                                          th:text="${riskAssessment.adminOverridePriority.displayName}"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Image Verification -->
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-body">
+              <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--charcoal);">Image Verification</div>
+              <div th:if="${imageVerification == null}" style="font-size:13px;color:var(--grey-dark);">
+                No image verification data available.
+              </div>
+              <div th:unless="${imageVerification == null}" style="font-size:13px;">
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="color:var(--grey-dark);">Result</span>
+                    <span class="badge"
+                          th:classappend="${imageVerification.result.name() == 'CLEAN'} ? 'badge-resolved' :
+                                         (${imageVerification.result.name() == 'SUSPICIOUS' or imageVerification.result.name() == 'FLAGGED_BY_ADMIN'} ? 'badge-critical' : 'badge-submitted')"
+                          th:text="${imageVerification.result.name()}"></span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="color:var(--grey-dark);">Exact Duplicate</span>
+                    <span th:text="${imageVerification.exactDuplicate ? 'Yes' : 'No'}"
+                          th:style="${imageVerification.exactDuplicate ? 'color:#C8202F;font-weight:600;' : 'color:#27ae60;'}"></span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="color:var(--grey-dark);">Visually Similar</span>
+                    <span th:text="${imageVerification.visuallySimilar ? 'Yes' : 'No'}"
+                          th:style="${imageVerification.visuallySimilar ? 'color:#e67e22;font-weight:600;' : 'color:#27ae60;'}"></span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="color:var(--grey-dark);">Has GPS Data</span>
+                    <span th:text="${imageVerification.hasGpsData ? 'Yes' : 'No'}"></span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="color:var(--grey-dark);">Has Timestamp</span>
+                    <span th:text="${imageVerification.hasTimestamp ? 'Yes' : 'No'}"></span>
+                  </div>
+                  <div th:if="${imageVerification.adminNotes != null}" style="margin-top:6px;padding:8px;background:var(--bg);border-radius:4px;">
+                    <div style="color:var(--grey-dark);font-size:11px;margin-bottom:2px;">Admin Notes</div>
+                    <div th:text="${imageVerification.adminNotes}"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity Timeline -->
+          <div class="card">
+            <div class="card-body">
+              <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--charcoal);">Activity Timeline</div>
+              <div th:if="${#lists.isEmpty(timeline)}" style="font-size:13px;color:var(--grey-dark);">
+                No activity recorded yet.
+              </div>
+              <div class="timeline" th:unless="${#lists.isEmpty(timeline)}">
+                <div th:each="update : ${timeline}" class="timeline-item">
+                  <div class="timeline-dot"></div>
+                  <div class="timeline-content">
+                    <div class="timeline-title" th:text="${update.message}"></div>
+                    <div class="timeline-time" th:text="${#temporals.format(update.createdAt,'dd MMM yyyy, HH:mm')}"></div>
+                    <div th:if="${update.updatedBy != null}" class="timeline-time"
+                         th:text="'By ' + ${update.updatedBy.fullName}"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script th:if="${complaint.latitude != null}" th:inline="javascript">
+  var lat = /*[[${complaint.latitude}]]*/ 0;
+  var lng = /*[[${complaint.longitude}]]*/ 0;
+  var map = L.map('detailMap').setView([lat, lng], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+  L.marker([lat, lng]).addTo(map);
+</script>
+</body>
+</html>
