@@ -73,7 +73,7 @@
                    style="font-family:monospace;font-size:12px;color:var(--red);"
                    th:text="${v.complaint.complaintId}"></a>
               </td>
-              <td style="font-family:monospace;font-size:11px;" th:text="${v.sha256Hash != null ? #strings.substring(v.sha256Hash,0,16)+'...' : '—'}"></td>
+              <td style="font-family:monospace;font-size:11px;" th:text="${v.image != null and v.image.sha256Hash != null ? #strings.substring(v.image.sha256Hash,0,16)+'...' : '—'}"></td>
               <td style="text-align:center;">
                 <i th:class="${v.exactDuplicate ? 'fa fa-xmark' : 'fa fa-check'}"
                    th:style="${v.exactDuplicate ? 'color:#C8202F;' : 'color:#27ae60;'}"></i>
