@@ -1,18 +1,19 @@
 package com.civicshield.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "complaints", indexes = {
-    @Index(name = "idx_complaints_user", columnList = "user_id"),
-    @Index(name = "idx_complaints_status", columnList = "status"),
-    @Index(name = "idx_complaints_category", columnList = "category"),
-    @Index(name = "idx_complaints_created", columnList = "created_at")
+        @Index(name = "idx_complaints_user", columnList = "user_id"),
+        @Index(name = "idx_complaints_status", columnList = "status"),
+        @Index(name = "idx_complaints_category", columnList = "category"),
+        @Index(name = "idx_complaints_created", columnList = "created_at")
 })
 @Data
 @NoArgsConstructor
@@ -69,11 +70,11 @@ public class Complaint {
     @Column(length = 500)
     private String riskFactors;
 
-    // Image
+    // Image path for the original complaint photo
     @Column(length = 255)
     private String imagePath;
 
-    // Verification
+    // Verification status of the image
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     private ImageVerificationStatus imageVerificationStatus = ImageVerificationStatus.PENDING;
@@ -85,7 +86,7 @@ public class Complaint {
     @Column
     private Long duplicateOfComplaintId;
 
-    // Confirmations (community support count)
+    // Confirmation count (citizen support)
     @Column(nullable = false)
     private int confirmationCount = 0;
 
@@ -110,8 +111,41 @@ public class Complaint {
         updatedAt = LocalDateTime.now();
     }
 
-    // ---- Enums ----
+    /**
+     * Returns the URL that can be used by the frontend to access the complaint image.
+     * If the stored path is already an absolute URL it is returned unchanged, otherwise
+     * it is prefixed with the application upload endpoint.
+     */
+    public String getImageUrl() {
+        return (imagePath != null && imagePath.startsWith("http")) ? imagePath : "/uploads/" + imagePath;
+    }
 
+    // Helper methods for repair images (before/after) – these rely on the ComplaintImage entity.
+    // The actual retrieval logic will be handled in the service layer; the methods return null
+    // if no image is associated.
+    @Transient
+    private String repairBeforeUrl;
+
+    @Transient
+    private String repairAfterUrl;
+
+    public String getRepairBeforeUrl() {
+        return repairBeforeUrl;
+    }
+
+    public void setRepairBeforeUrl(String url) {
+        this.repairBeforeUrl = url;
+    }
+
+    public String getRepairAfterUrl() {
+        return repairAfterUrl;
+    }
+
+    public void setRepairAfterUrl(String url) {
+        this.repairAfterUrl = url;
+    }
+
+    // ---------- Enums ----------
     public enum Category {
         ROAD_DAMAGE,
         STREETLIGHT_FAILURE,
@@ -121,19 +155,6 @@ public class Complaint {
         OPEN_MANHOLE,
         FALLEN_TREE,
         OTHER;
-
-        public String getDisplayName() {
-            return switch (this) {
-                case ROAD_DAMAGE -> "Road Damage";
-                case STREETLIGHT_FAILURE -> "Streetlight Failure";
-                case DRAINAGE_BLOCKAGE -> "Drainage Blockage";
-                case WATER_LEAKAGE -> "Water Leakage";
-                case PUBLIC_STRUCTURE_DAMAGE -> "Public Structure Damage";
-                case OPEN_MANHOLE -> "Open Manhole";
-                case FALLEN_TREE -> "Fallen Tree";
-                case OTHER -> "Other";
-            };
-        }
     }
 
     public enum Status {
@@ -143,41 +164,11 @@ public class Complaint {
         ASSIGNED,
         IN_PROGRESS,
         RESOLVED,
-        REJECTED;
-
-        public String getDisplayName() {
-            return switch (this) {
-                case SUBMITTED -> "Submitted";
-                case UNDER_REVIEW -> "Under Review";
-                case VERIFIED -> "Verified";
-                case ASSIGNED -> "Assigned";
-                case IN_PROGRESS -> "In Progress";
-                case RESOLVED -> "Resolved";
-                case REJECTED -> "Rejected";
-            };
-        }
+        REJECTED
     }
 
     public enum Priority {
-        LOW, MEDIUM, HIGH, CRITICAL;
-
-        public String getDisplayName() {
-            return switch (this) {
-                case LOW -> "Low";
-                case MEDIUM -> "Medium";
-                case HIGH -> "High";
-                case CRITICAL -> "Critical";
-            };
-        }
-
-        public String getBadgeClass() {
-            return switch (this) {
-                case LOW -> "badge-low";
-                case MEDIUM -> "badge-medium";
-                case HIGH -> "badge-high";
-                case CRITICAL -> "badge-critical";
-            };
-        }
+        LOW, MEDIUM, HIGH, CRITICAL
     }
 
     public enum ImageVerificationStatus {

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8" />
+    <title>Worker Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+<div class="container">
+    <h1>Worker Dashboard</h1>
+    <p>Welcome, <span th:text="${user.name}"></span></p>
+    <table>
+        <thead>
+        <tr>
+            <th>Complaint ID</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="assignment : ${assignments}">
+            <td th:text="${assignment.complaint.complaintId}"></td>
+            <td th:text="${assignment.complaint.category.displayName}"></td>
+            <td th:text="${assignment.status}"></td>
+            <td><a th:href="@{'/worker/assignments/' + ${assignment.id}}">View</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

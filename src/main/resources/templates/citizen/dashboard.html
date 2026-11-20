@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8" />
+    <title>Citizen Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+<div class="container">
+    <h1>My Complaints</h1>
+    <p>Welcome, <span th:text="${user.name}"></span></p>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="complaint : ${complaints}">
+            <td th:text="${complaint.complaintId}"></td>
+            <td th:text="${complaint.category}"></td>
+            <td th:text="${complaint.status}"></td>
+            <td th:text="${#dates.format(complaint.createdAt, 'yyyy-MM-dd')}"></td>
+            <td><a th:href="@{'/citizen/complaints/' + ${complaint.id}}">View</a></td>
+        </tr>
+        </tbody>
+    </table>
+    <p><a th:href="@{/citizen/submit}">Submit New Complaint</a></p>
+</div>
+</body>
+</html>

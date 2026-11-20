@@ -44,6 +44,7 @@ public class ComplaintService {
     private final HotspotDetector hotspotDetector;
     private final ImageVerificationService imageVerificationService;
     private final NotificationService notificationService;
+    private final RepairEvidenceService repairEvidenceService;
 
     @Transactional
     public Complaint submit(ComplaintSubmitDTO dto, User user, MultipartFile image) throws IOException {
@@ -178,6 +179,19 @@ public class ComplaintService {
     }
 
     public Complaint getById(Long id) {
+        Complaint c = complaintRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Report not found: " + id));
+        // Populate repair image URLs if evidence exists
+        repairEvidenceService.getByComplaint(c).ifPresent(e -> {
+            if (e.getBeforeImagePath() != null) {
+                c.setRepairBeforeUrl("/uploads/" + e.getBeforeImagePath());
+            }
+            if (e.getAfterImagePath() != null) {
+                c.setRepairAfterUrl("/uploads/" + e.getAfterImagePath());
+            }
+        });
+        return c;
+    }
         return complaintRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Report not found: " + id));
     }

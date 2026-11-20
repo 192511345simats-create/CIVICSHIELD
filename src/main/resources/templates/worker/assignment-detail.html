@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8" />
+    <title>Worker Assignment Detail</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+<div class="container">
+    <h1>Assignment Detail</h1>
+    <p>Worker: <span th:text="${user.name}"></span></p>
+    <h2>Complaint</h2>
+    <p><strong>ID:</strong> <span th:text="${complaint.complaintId}"></span></p>
+    <p><strong>Category:</strong> <span th:text="${complaint.category}"></span></p>
+    <p><strong>Description:</strong> <span th:text="${complaint.description}"></span></p>
+    <p><strong>Location:</strong> <span th:text="${complaint.locationAddress}"></span></p>
+    <p><strong>Image:</strong><br/>
+        <img th:if="${complaint.imagePath}" th:src="@{'/uploads/' + ${complaint.imagePath}}" alt="Complaint Photo" style="max-width:400px;"/>
+    </p>
+
+    <h3>Upload Repair Evidence</h3>
+    <form th:action="@{'/worker/assignments/' + ${assignment.id} + '/evidence'}" method="post" enctype="multipart/form-data">
+        <label>Before Image: <input type="file" name="before"/></label><br/>
+        <label>After Image: <input type="file" name="after"/></label><br/>
+        <button type="submit">Upload Evidence</button>
+    </form>
+
+    <h3>Update Status</h3>
+    <form th:action="@{'/worker/assignments/' + ${assignment.id} + '/status'}" method="post">
+        <select name="status">
+            <option th:value="${assignment.status}" th:text="${assignment.status}" selected></option>
+            <option th:each="st : ${T(com.civicshield.entity.Assignment.AssignmentStatus).values()}" th:value="${st}" th:text="${st}"></option>
+        </select>
+        <button type="submit">Change</button>
+    </form>
+
+    <p><a th:href="@{/worker/dashboard}">Back to Dashboard</a></p>
+</div>
+</body>
+</html>

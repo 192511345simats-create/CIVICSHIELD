@@ -23,7 +23,30 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public User register(UserRegistrationDTO dto) {
+    public User createWorker(String fullName, String email, String password, String phone) {
+        if (userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email already in use");
+        }
+        User w = new User();
+        w.setFullName(fullName.trim());
+        w.setEmail(email.trim().toLowerCase());
+        w.setPassword(passwordEncoder.encode(password));
+        w.setMobile(phone);
+        w.setRole(User.Role.WORKER);
+        w.setEnabled(true);
+        return userRepository.save(w);
+    }
+
+    public List<User> getAllWorkers() {
+        return userRepository.findByRole(User.Role.WORKER);
+    }
+
+    public Optional<User> getWorkerByEmail(String email) {
+        return userRepository.findByEmail(email.trim().toLowerCase());
+    }
+
+        // existing method unchanged
+
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("An account with this email address already exists.");
         }

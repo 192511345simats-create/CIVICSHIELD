@@ -77,6 +77,6 @@ public class User {
     }
 
     public enum Role {
-        CITIZEN, ADMIN
+        CITIZEN, WORKER, ADMIN
     }
 }

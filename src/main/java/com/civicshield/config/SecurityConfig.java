@@ -63,6 +63,7 @@ public class SecurityConfig {
                         "/api/public/**", "/error", "/access-denied").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/citizen/**").hasRole("CITIZEN")
+                .requestMatchers("/worker/**").hasAnyRole("WORKER", "ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(f -> f
@@ -73,7 +74,15 @@ public class SecurityConfig {
                 .successHandler((req, res, auth) -> {
                     boolean isAdmin = auth.getAuthorities().stream()
                         .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-                    res.sendRedirect(isAdmin ? "/admin/overview" : "/citizen/home");
+                    boolean isWorker = auth.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_WORKER"));
+                    if (isAdmin) {
+                        res.sendRedirect("/admin/overview");
+                    } else if (isWorker) {
+                        res.sendRedirect("/worker/dashboard");
+                    } else {
+                        res.sendRedirect("/citizen/home");
+                    }
                 })
                 .failureUrl("/login?error=true")
                 .permitAll()

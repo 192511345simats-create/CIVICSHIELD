@@ -16,6 +16,7 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     Optional<Assignment> findByComplaint(Complaint complaint);
     List<Assignment> findByDepartment(Department department);
     List<Assignment> findByStatus(Assignment.AssignmentStatus status);
+    List<Assignment> findByWorkerContactIgnoreCase(String email);
 
     @Query("SELECT a FROM Assignment a WHERE a.deadline < :now AND a.status NOT IN ('COMPLETED') ORDER BY a.deadline ASC")
     List<Assignment> findOverdueAssignments(@Param("now") LocalDateTime now);
