@@ -46,6 +46,11 @@ public class ComplaintService {
     private final NotificationService notificationService;
     private final RepairEvidenceService repairEvidenceService;
 
+    @Transactional(readOnly = true)
+    public List<ComplaintUpdate> getTimeline(Complaint complaint) {
+        return updateRepository.findByComplaintOrderByUpdatedAtDesc(complaint);
+    }
+
     @Transactional
     public Complaint submit(ComplaintSubmitDTO dto, User user, MultipartFile image) throws IOException {
         Complaint complaint = new Complaint();
@@ -218,9 +223,7 @@ public class ComplaintService {
         return complaintRepository.findHighPriorityActive();
     }
 
-    public List<ComplaintUpdate> getTimeline(Complaint complaint) {
-        return updateRepository.findByComplaintOrderByUpdatedAtAsc(complaint);
-    }
+
 
     public Optional<Assignment> getAssignment(Complaint complaint) {
         return assignmentRepository.findByComplaint(complaint);
