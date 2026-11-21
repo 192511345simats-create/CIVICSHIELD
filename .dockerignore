@@ -1,0 +1,6 @@
+.git
+target/
+datasets/
+uploads/
+.mvn/
+*.md
