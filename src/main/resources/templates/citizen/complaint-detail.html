@@ -72,7 +72,7 @@
             <div class="card-header"><span class="card-title">Repair Assignment</span></div>
             <div class="card-body">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div><div style="font-size:12px;font-weight:600;color:var(--grey-dark);margin-bottom:4px;">Department</div><div th:text="${assignment.department.name}"></div></div>
+                <div><div style="font-size:12px;font-weight:600;color:var(--grey-dark);margin-bottom:4px;">Department</div><div th:text="${assignment.department != null ? assignment.department.name : 'Pending'}"></div></div>
                 <div><div style="font-size:12px;font-weight:600;color:var(--grey-dark);margin-bottom:4px;">Worker</div><div th:text="${assignment.workerName != null ? assignment.workerName : 'Not assigned'}"></div></div>
                 <div><div style="font-size:12px;font-weight:600;color:var(--grey-dark);margin-bottom:4px;">Target Date</div><div th:text="${assignment.deadline != null ? #temporals.format(assignment.deadline,'dd MMM yyyy') : '—'}"></div></div>
                 <div><div style="font-size:12px;font-weight:600;color:var(--grey-dark);margin-bottom:4px;">Assignment Status</div><div th:text="${assignment.status.name()}"></div></div>

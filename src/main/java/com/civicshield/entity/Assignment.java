@@ -22,7 +22,7 @@ public class Assignment {
     @JoinColumn(name = "complaint_id", nullable = false)
     private Complaint complaint;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 

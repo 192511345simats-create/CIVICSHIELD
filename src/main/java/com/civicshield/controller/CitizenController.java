@@ -107,14 +107,32 @@ public class CitizenController {
     public String complaintDetail(@AuthenticationPrincipal CustomUserDetails principal,
                                   @PathVariable Long id, Model model) {
         User user = getCurrentUser(principal);
-        Complaint complaint = complaintService.getById(id);
+        Complaint complaint;
+        try {
+            complaint = complaintService.getById(id);
+        } catch (Exception e) {
+            return "redirect:/citizen/complaints";
+        }
         // Citizens can only see their own complaints
         if (!complaint.getUser().getId().equals(user.getId())) {
             return "redirect:/citizen/complaints";
         }
         model.addAttribute("complaint", complaint);
-        model.addAttribute("timeline", complaintService.getTimeline(complaint));
-        model.addAttribute("assignment", complaintService.getAssignment(complaint).orElse(null));
+
+        // Timeline (non-fatal)
+        try {
+            model.addAttribute("timeline", complaintService.getTimeline(complaint));
+        } catch (Exception e) {
+            model.addAttribute("timeline", java.util.Collections.emptyList());
+        }
+
+        // Assignment (non-fatal)
+        try {
+            model.addAttribute("assignment", complaintService.getAssignment(complaint).orElse(null));
+        } catch (Exception e) {
+            model.addAttribute("assignment", null);
+        }
+
         model.addAttribute("user", user);
         model.addAttribute("unreadCount", notificationService.countUnread(user));
         return "citizen/complaint-detail";
