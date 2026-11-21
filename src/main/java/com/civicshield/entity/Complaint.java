@@ -155,6 +155,19 @@ public class Complaint {
         OPEN_MANHOLE,
         FALLEN_TREE,
         OTHER;
+
+        public String getDisplayName() {
+            return switch (this) {
+                case ROAD_DAMAGE -> "Road Damage";
+                case STREETLIGHT_FAILURE -> "Streetlight Failure";
+                case DRAINAGE_BLOCKAGE -> "Drainage Blockage";
+                case WATER_LEAKAGE -> "Water Leakage";
+                case PUBLIC_STRUCTURE_DAMAGE -> "Public Structure Damage";
+                case OPEN_MANHOLE -> "Open Manhole";
+                case FALLEN_TREE -> "Fallen Tree";
+                case OTHER -> "Other";
+            };
+        }
     }
 
     public enum Status {
@@ -164,11 +177,41 @@ public class Complaint {
         ASSIGNED,
         IN_PROGRESS,
         RESOLVED,
-        REJECTED
+        REJECTED;
+
+        public String getDisplayName() {
+            return switch (this) {
+                case SUBMITTED -> "Submitted";
+                case UNDER_REVIEW -> "Under Review";
+                case VERIFIED -> "Verified";
+                case ASSIGNED -> "Assigned";
+                case IN_PROGRESS -> "In Progress";
+                case RESOLVED -> "Resolved";
+                case REJECTED -> "Rejected";
+            };
+        }
     }
 
     public enum Priority {
-        LOW, MEDIUM, HIGH, CRITICAL
+        LOW, MEDIUM, HIGH, CRITICAL;
+
+        public String getDisplayName() {
+            return switch (this) {
+                case LOW -> "Low";
+                case MEDIUM -> "Medium";
+                case HIGH -> "High";
+                case CRITICAL -> "Critical";
+            };
+        }
+
+        public String getBadgeClass() {
+            return switch (this) {
+                case LOW -> "badge-low";
+                case MEDIUM -> "badge-medium";
+                case HIGH -> "badge-high";
+                case CRITICAL -> "badge-critical";
+            };
+        }
     }
 
     public enum ImageVerificationStatus {

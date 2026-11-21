@@ -41,7 +41,7 @@ public class NotificationService {
             default          -> Notification.NotificationType.INFO;
         };
         notifyUser(c.getUser(), c, "Report Update",
-            "Your report " + c.getComplaintId() + " status is now: " + newStatus.name() + ".",
+            "Your report " + c.getComplaintId() + " status is now: " + newStatus.getDisplayName() + ".",
             type);
     }
 

@@ -68,30 +68,51 @@ public class ComplaintService {
 
         complaint = complaintRepository.save(complaint);
 
-        // Handle image upload
+        // Handle image upload (non-fatal if it fails)
         if (image != null && !image.isEmpty()) {
-            processImage(complaint, image);
+            try {
+                processImage(complaint, image);
+            } catch (Exception e) {
+                log.warn("Image processing failed for complaint {}: {}", complaint.getComplaintId(), e.getMessage());
+            }
         }
 
-        // Duplicate detection
-        Optional<Complaint> duplicate = duplicateDetector.findDuplicate(complaint);
-        if (duplicate.isPresent()) {
-            complaint.setPossibleDuplicate(true);
-            complaint.setDuplicateOfComplaintId(duplicate.get().getId());
+        // Duplicate detection (non-fatal)
+        try {
+            Optional<Complaint> duplicate = duplicateDetector.findDuplicate(complaint);
+            if (duplicate.isPresent()) {
+                complaint.setPossibleDuplicate(true);
+                complaint.setDuplicateOfComplaintId(duplicate.get().getId());
+            }
+        } catch (Exception e) {
+            log.warn("Duplicate detection failed for complaint {}: {}", complaint.getComplaintId(), e.getMessage());
         }
 
-        // Risk assessment
-        boolean isHotspot = complaint.getLatitude() != null &&
-            hotspotDetector.isHotspot(complaint.getLatitude(), complaint.getLongitude());
-        RiskAssessment assessment = riskScoringEngine.assess(complaint, 0, isHotspot);
-        complaint = complaintRepository.save(complaint);
-        riskAssessmentRepository.save(assessment);
+        // Risk assessment (non-fatal)
+        try {
+            boolean isHotspot = complaint.getLatitude() != null &&
+                hotspotDetector.isHotspot(complaint.getLatitude(), complaint.getLongitude());
+            RiskAssessment assessment = riskScoringEngine.assess(complaint, 0, isHotspot);
+            complaint = complaintRepository.save(complaint);
+            riskAssessmentRepository.save(assessment);
+        } catch (Exception e) {
+            log.warn("Risk assessment failed for complaint {}: {}", complaint.getComplaintId(), e.getMessage());
+            complaint = complaintRepository.save(complaint);
+        }
 
         // Record initial status
-        recordStatusChange(complaint, null, Complaint.Status.SUBMITTED, user, "Report submitted.");
+        try {
+            recordStatusChange(complaint, null, Complaint.Status.SUBMITTED, user, "Report submitted.");
+        } catch (Exception e) {
+            log.warn("Status recording failed for complaint {}: {}", complaint.getComplaintId(), e.getMessage());
+        }
 
-        // Notify user
-        notificationService.notifyComplaintReceived(complaint);
+        // Notify user (non-fatal)
+        try {
+            notificationService.notifyComplaintReceived(complaint);
+        } catch (Exception e) {
+            log.warn("Notification failed for complaint {}: {}", complaint.getComplaintId(), e.getMessage());
+        }
 
         log.info("Complaint {} submitted by {}", complaint.getComplaintId(), user.getEmail());
         return complaint;

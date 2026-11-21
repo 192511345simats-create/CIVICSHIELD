@@ -40,7 +40,7 @@ public class DuplicateDetector {
         for (Complaint existing : candidates) {
             double score = similarityScore(newC, existing);
             if (score >= threshold) {
-                log.info("Possible duplicate: {} ↔ {} (score={:.2f})", newC.getComplaintId(), existing.getComplaintId(), score);
+                log.info("Possible duplicate: {} ↔ {} (score={})", newC.getComplaintId(), existing.getComplaintId(), String.format("%.2f", score));
                 return Optional.of(existing);
             }
         }

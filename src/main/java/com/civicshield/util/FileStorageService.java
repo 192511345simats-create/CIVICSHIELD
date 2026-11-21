@@ -56,8 +56,16 @@ public class FileStorageService {
         }
     }
 
-    public Path resolvePath(String rel) { return Paths.get(uploadDir, rel); }
-    public File resolveFile(String rel) { return resolvePath(rel).toFile(); }
+    public Path resolvePath(String rel) {
+        if (rel == null || rel.startsWith("http://") || rel.startsWith("https://")) {
+            return null;
+        }
+        return Paths.get(uploadDir, rel);
+    }
+    public File resolveFile(String rel) {
+        Path p = resolvePath(rel);
+        return p != null ? p.toFile() : null;
+    }
 
     public boolean isCloudinaryEnabled() { return cloudinary != null; }
 

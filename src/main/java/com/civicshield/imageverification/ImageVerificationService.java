@@ -104,6 +104,9 @@ public class ImageVerificationService {
 
     @Transactional
     public void extractAndStoreExif(ComplaintImage image, File file) {
+        if (file == null || !file.exists()) {
+            return;
+        }
         Map<String, String> exif = new HashMap<>();
         try {
             Metadata meta = ImageMetadataReader.readMetadata(file);
