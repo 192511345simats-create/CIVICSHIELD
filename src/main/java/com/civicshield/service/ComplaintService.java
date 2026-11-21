@@ -197,9 +197,6 @@ public class ComplaintService {
         });
         return c;
     }
-        return complaintRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Report not found: " + id));
-    }
 
     public Complaint getByComplaintId(String complaintId) {
         return complaintRepository.findByComplaintId(complaintId)

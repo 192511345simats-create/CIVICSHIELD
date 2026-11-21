@@ -41,7 +41,7 @@ public class NotificationService {
             default          -> Notification.NotificationType.INFO;
         };
         notifyUser(c.getUser(), c, "Report Update",
-            "Your report " + c.getComplaintId() + " status is now: " + newStatus.getDisplayName() + ".",
+            "Your report " + c.getComplaintId() + " status is now: " + newStatus.name() + ".",
             type);
     }
 
@@ -62,5 +62,22 @@ public class NotificationService {
 
     public List<Notification> getAll(User user) {
         return notificationRepository.findByUserOrderByCreatedAtDesc(user);
+    }
+
+    public List<Notification> getByUser(User user) {
+        return getAll(user);
+    }
+
+    @Transactional
+    public void createNotification(User user, String message, Long complaintId) {
+        Notification n = new Notification();
+        if (user != null) {
+            n.setUser(user);
+        }
+        n.setTitle("CivicShield Notification");
+        n.setMessage(message);
+        n.setType(Notification.NotificationType.INFO);
+        n.setRead(false);
+        notificationRepository.save(n);
     }
 }

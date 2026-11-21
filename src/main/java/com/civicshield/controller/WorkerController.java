@@ -1,8 +1,6 @@
 package com.civicshield.controller;
 
-import com.civicshield.dto.AssignmentDTO;
 import com.civicshield.entity.Assignment;
-import com.civicshield.entity.ComplaintImage;
 import com.civicshield.security.CustomUserDetails;
 import com.civicshield.service.AssignmentService;
 import com.civicshield.service.RepairEvidenceService;
@@ -43,7 +41,8 @@ public class WorkerController {
         var user = getCurrentUser(principal);
         Assignment assignment = assignmentService.getById(id);
         // security: ensure assignment belongs to this worker
-        if (!assignment.getWorker().getId().equals(user.getId())) {
+        if (assignment.getWorkerContact() != null && user.getEmail() != null
+                && !assignment.getWorkerContact().equalsIgnoreCase(user.getEmail())) {
             return "redirect:/worker/dashboard";
         }
         model.addAttribute("assignment", assignment);
@@ -52,14 +51,14 @@ public class WorkerController {
         return "worker/assignment-detail";
     }
 
-    /** Update assignment status (ACCEPT, START, COMPLETE) */
+    /** Update assignment status (PENDING, IN_PROGRESS, COMPLETED) */
     @PostMapping("/assignments/{id}/status")
     public String updateStatus(@PathVariable Long id,
                                @RequestParam String status,
                                @AuthenticationPrincipal CustomUserDetails principal,
                                RedirectAttributes ra) {
         var user = getCurrentUser(principal);
-        assignmentService.updateStatus(id, Assignment.Status.valueOf(status), user);
+        assignmentService.updateStatus(id, Assignment.AssignmentStatus.valueOf(status), user);
         ra.addFlashAttribute("success", "Status updated.");
         return "redirect:/worker/assignments/" + id;
     }

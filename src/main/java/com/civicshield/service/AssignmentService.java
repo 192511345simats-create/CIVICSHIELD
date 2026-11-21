@@ -75,6 +75,14 @@ public class AssignmentService {
     }
 
     public List<Assignment> getAll() { return assignmentRepository.findAll(); }
+    public Assignment getById(Long id) {
+        return assignmentRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Assignment not found: " + id));
+    }
+    public List<Assignment> getByWorker(User worker) {
+        if (worker == null || worker.getEmail() == null) return List.of();
+        return assignmentRepository.findByWorkerContactIgnoreCase(worker.getEmail());
+    }
     public List<Assignment> getOverdue() {
         return assignmentRepository.findOverdueAssignments(java.time.LocalDateTime.now());
     }

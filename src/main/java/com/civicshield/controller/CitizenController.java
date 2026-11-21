@@ -146,9 +146,9 @@ public class CitizenController {
                     put("complaintId", c.getComplaintId());
                     put("lat", c.getLatitude());
                     put("lng", c.getLongitude());
-                    put("category", c.getCategory().getDisplayName());
-                    put("status", c.getStatus().getDisplayName());
-                    put("priority", c.getPriority() != null ? c.getPriority().getDisplayName() : "");
+                    put("category", c.getCategory() != null ? c.getCategory().name() : "");
+                    put("status", c.getStatus() != null ? c.getStatus().name() : "");
+                    put("priority", c.getPriority() != null ? c.getPriority().name() : "");
                     put("address", c.getLocationAddress());
                 }}).toList()
             );

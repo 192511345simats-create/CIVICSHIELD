@@ -45,8 +45,8 @@ public class UserService {
         return userRepository.findByEmail(email.trim().toLowerCase());
     }
 
-        // existing method unchanged
-
+    @Transactional
+    public User register(UserRegistrationDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("An account with this email address already exists.");
         }
